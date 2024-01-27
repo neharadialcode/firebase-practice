@@ -66,15 +66,31 @@ const UserDetails = () => {
   const onSubmitHandler = async (e) => {
     setError(true);
     e.preventDefault();
+    const isDuplicate = getData.some(
+      (user) =>
+        user.firstName === studentData.firstName &&
+        user.email === studentData.email &&
+        user.address === studentData.address
+      // Add more fields as needed
+    );
     if (studentData.firstName && studentData.email) {
       setLoading(true);
       if (editMode && editUserId) {
-        // Update existing user
-        const userRef = ref(realTimeDB, `users/${editUserId}`);
-        await set(userRef, studentData);
-        setEditMode(false);
-        setEditUserId(null);
-        setLoading(false);
+        if (isDuplicate) {
+          setError(false);
+          setStudentData(initialState);
+          setImagePreview("");
+        } else {
+          // Update existing user
+          const userRef = ref(realTimeDB, `users/${editUserId}`);
+          await set(userRef, studentData);
+          setError(false);
+          setEditMode(false);
+          setEditUserId(null);
+          setLoading(false);
+          setStudentData(initialState);
+          setImagePreview("");
+        }
       } else {
         await set(ref(realTimeDB, `users/` + uuidv4()), studentData);
         setLoading(false);
@@ -207,7 +223,7 @@ const UserDetails = () => {
           />
           {imagePreview && (
             <img
-              className="w-[50px] h-[50px] rounded-full object-cover"
+              className="min-w-[50px] min-h-[50px] max-w-[50px] max-h-[50px] rounded-full object-cover"
               src={imagePreview}
               alt="profile img"
             />
@@ -234,7 +250,7 @@ const UserDetails = () => {
                   <td className="border-[1px] border-blue-700 px-5">
                     {obj.imgUrl ? (
                       <img
-                        className="w-[50px] h-[50px] rounded-full object-cover"
+                        className="min-w-[50px] min-h-[50px] max-w-[50px] max-h-[50px] rounded-full object-cover"
                         src={obj.imgUrl}
                         alt="profile"
                       />
