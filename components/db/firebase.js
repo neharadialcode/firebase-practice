@@ -10,6 +10,8 @@ const firebaseConfig = {
   storageBucket: "fir-practice-33835.appspot.com",
   messagingSenderId: "946864864820",
   appId: "1:946864864820:web:3adfed5c488b992816d461",
+  databaseURL:
+    "https://fir-practice-33835-default-rtdb.asia-southeast1.firebasedatabase.app",
 };
 
 // Initialize Firebase
@@ -17,4 +19,4 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const realTimeDB = getDatabase(app);
-export const db = getAuth(app);
+export const db = getFirestore(app);
