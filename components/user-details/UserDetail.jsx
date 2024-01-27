@@ -16,6 +16,9 @@ const UserDetails = () => {
   const [delBtnIndex, setDelBtnindex] = useState(null);
   const [delLoading, setDelLoading] = useState(false);
   const [getData, setGetdata] = useState([]);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editUserId, setEditUserId] = useState(null);
 
   // GET BLOB URL  =============================************===============*****==================
   const handleImageChange = (e) => {
@@ -23,6 +26,7 @@ const UserDetails = () => {
     if (file) {
       const blobUrl = URL.createObjectURL(file);
       setStudentData({ ...studentData, imgUrl: blobUrl });
+      setImagePreview(blobUrl);
     }
   };
   // ONSUBMIT STORED DATA  =============================************===============*****==================
@@ -31,9 +35,18 @@ const UserDetails = () => {
     setLoading(true);
     e.preventDefault();
     if (studentData.firstName && studentData.email) {
-      await set(ref(realTimeDB, `users/` + uuidv4()), studentData);
-      setLoading(false);
-      setStudentData(initialState);
+      if (editMode && editUserId) {
+        // Update existing user
+        const userRef = ref(realTimeDB, `users/${editUserId}`);
+        await set(userRef, studentData);
+        setEditMode(false);
+        setEditUserId(null);
+        setLoading(false);
+      } else {
+        await set(ref(realTimeDB, `users/` + uuidv4()), studentData);
+        setLoading(false);
+        setStudentData(initialState);
+      }
     }
   };
   // GET STORED DATA  =============================************===============*****==================
@@ -66,6 +79,18 @@ const UserDetails = () => {
       setDelLoading(false);
     } catch (error) {
       console.error("Error deleting data:", error);
+    }
+  };
+
+  // EDIT OR UPDATE VALUE==============**************************==================**********============
+
+  const editUser = (id) => {
+    const userToEdit = getData.find((user) => user.id === id);
+    if (userToEdit) {
+      setStudentData(userToEdit);
+      setImagePreview(userToEdit.imgUrl || null);
+      setEditMode(true);
+      setEditUserId(id);
     }
   };
 
@@ -118,23 +143,32 @@ const UserDetails = () => {
         />
         <label
           htmlFor="image"
-          className="border-[1px] border-purple-700 bg-purple-700 text-white font-bold cursor-pointer w-full m-1 p-4"
+          className={`border-[1px] flex justify-between items-center border-purple-700  text-purple-700 font-bold cursor-pointer  m-1 px-4 py-2 ${
+            imagePreview ? "max-w-[250px]" : "max-w-[200px]"
+          }`}
         >
           upload profile image
           <input
             onChange={handleImageChange}
-            className="border-[1px] border-purple-700 w-full m-1 p-4"
+            className="border-[1px] border-purple-700  m-1 p-4"
             type="file"
             name=""
             hidden
             id="image"
             placeholder="Address"
           />
+          {imagePreview && (
+            <img
+              className="w-[50px] h-[50px] rounded-full object-cover"
+              src={imagePreview}
+              alt="profile img"
+            />
+          )}
         </label>
 
         <div className="text-center">
           <button className="bg-purple-700 text-white py-2 px-10 hover:bg-purple-500 transition-all duration-200 ease-in-out rounded-lg mt-4 text-lg">
-            Submit
+            {editMode ? "Update" : "Submit"}
           </button>
         </div>
       </form>
@@ -171,6 +205,14 @@ const UserDetails = () => {
                     {delLoading && delBtnIndex === obj.id
                       ? ".....loading"
                       : "Delete"}
+                  </button>
+                </td>
+                <td className="border-[1px] border-blue-700 px-5">
+                  <button
+                    onClick={() => editUser(obj.id)}
+                    className="text-white bg-[#46f82e] w-[150px] px-4 py-1 my-1 rounded-lg"
+                  >
+                    EDIT
                   </button>
                 </td>
               </tr>
