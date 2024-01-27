@@ -24,29 +24,50 @@ const UserDetails = () => {
   const [delLoading, setDelLoading] = useState(false);
   const [getData, setGetdata] = useState([]);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageList, setImageList] = useState([]);
+  const [imgLoading, setImgLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editUserId, setEditUserId] = useState(null);
 
   // GET BLOB URL  =============================************===============*****==================
 
   const imagesListRef = dbImgRef(storage, "images/" + uuidv4());
+  const imageLoading = () => {
+    setImgLoading(true);
+  };
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       const uploadTask = await uploadBytes(imagesListRef, file);
       const imageUrl = await getDownloadURL(uploadTask.ref);
-      setStudentData({ ...studentData, imgUrl: imageUrl });
-      setImagePreview(imageUrl);
+      if (imageUrl) {
+        setStudentData({ ...studentData, imgUrl: imageUrl });
+        setImagePreview(imageUrl);
+        setImgLoading(false);
+      } else {
+        setStudentData({ ...studentData, imgUrl: "" });
+        setImgLoading(false);
+      }
     }
   };
   console.log(studentData.imgUrl, "imageUrl");
+  useEffect(() => {
+    listAll(imagesListRef).then((response) => {
+      response.items.forEach((item) => {
+        getDownloadURL(item).then((url) => {
+          setImageList((prev) => [...prev, url]);
+        });
+      });
+    });
+    console.log(imageList, "abc");
+  }, []);
 
   // ONSUBMIT STORED DATA  =============================************===============*****==================
 
   const onSubmitHandler = async (e) => {
-    setLoading(true);
     e.preventDefault();
     if (studentData.firstName && studentData.email) {
+      setLoading(true);
       if (editMode && editUserId) {
         // Update existing user
         const userRef = ref(realTimeDB, `users/${editUserId}`);
@@ -58,6 +79,7 @@ const UserDetails = () => {
         await set(ref(realTimeDB, `users/` + uuidv4()), studentData);
         setLoading(false);
         setStudentData(initialState);
+        setImagePreview("");
       }
     }
   };
@@ -70,6 +92,7 @@ const UserDetails = () => {
       snapshot.forEach((obj) => {
         data.push({ id: obj.key, ...obj.val() });
       });
+      console.log(data, "dta");
       setGetdata(data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -83,6 +106,7 @@ const UserDetails = () => {
   // TO DELETE ANY VALUE FROM LIST==============**************************==================**********============
 
   const deleteValue = async (id) => {
+    console.log(id, "id");
     setDelBtnindex(id);
     try {
       setDelLoading(true);
@@ -154,6 +178,7 @@ const UserDetails = () => {
           value={studentData.address}
         />
         <label
+          onClick={() => imageLoading()}
           htmlFor="image"
           className={`border-[1px] flex justify-between items-center border-purple-700  text-purple-700 font-bold cursor-pointer  m-1 px-4 py-2 ${
             imagePreview ? "max-w-[250px]" : "max-w-[200px]"
@@ -179,56 +204,61 @@ const UserDetails = () => {
         </label>
 
         <div className="text-center">
-          <button className="bg-purple-700 text-white py-2 px-10 hover:bg-purple-500 transition-all duration-200 ease-in-out rounded-lg mt-4 text-lg">
+          <button
+            disabled={imgLoading}
+            className="bg-purple-700 text-white py-2 px-10 hover:bg-purple-500 transition-all duration-200 ease-in-out rounded-lg mt-4 text-lg"
+          >
             {editMode ? "Update" : "Submit"}
           </button>
         </div>
       </form>
 
-      {loading ? (
+      {imgLoading && loading ? (
         <p className="text-2xl text-blue-600">....loading</p>
       ) : (
         <table>
-          {getData.length > 0 &&
-            getData.map((obj, i) => (
-              <tr>
-                <td className="border-[1px] border-blue-700 px-5">
-                  {obj.imgUrl ? (
-                    <img
-                      className="w-[50px] h-[50px] rounded-full object-cover"
-                      src={obj.imgUrl}
-                      alt="profile"
-                    />
-                  ) : (
-                    <div className="w-[50px] h-[50px] rounded-full bg-purple-700"></div>
-                  )}
-                </td>
-                <td className="border-[1px] border-blue-700 px-5">
-                  {obj.firstName}
-                </td>
-                <td className="border-[1px] border-blue-700 px-5">
-                  {obj.email}
-                </td>
-                <td className="border-[1px] border-blue-700 px-5">
-                  <button
-                    onClick={() => deleteValue(obj.id)}
-                    className="text-white bg-red-600 w-[150px] px-4 py-1 my-1 rounded-lg"
-                  >
-                    {delLoading && delBtnIndex === obj.id
-                      ? ".....loading"
-                      : "Delete"}
-                  </button>
-                </td>
-                <td className="border-[1px] border-blue-700 px-5">
-                  <button
-                    onClick={() => editUser(obj.id)}
-                    className="text-white bg-[#46f82e] w-[150px] px-4 py-1 my-1 rounded-lg"
-                  >
-                    EDIT
-                  </button>
-                </td>
-              </tr>
-            ))}
+          <tbody>
+            {getData.length > 0 &&
+              getData.map((obj, i) => (
+                <tr key={i}>
+                  <td className="border-[1px] border-blue-700 px-5">
+                    {obj.imgUrl ? (
+                      <img
+                        className="w-[50px] h-[50px] rounded-full object-cover"
+                        src={obj.imgUrl}
+                        alt="profile"
+                      />
+                    ) : (
+                      <div className="w-[50px] h-[50px] rounded-full bg-purple-700"></div>
+                    )}
+                  </td>
+                  <td className="border-[1px] border-blue-700 px-5">
+                    {obj.firstName}
+                  </td>
+                  <td className="border-[1px] border-blue-700 px-5">
+                    {obj.email}
+                  </td>
+                  <td className="border-[1px] border-blue-700 px-5">
+                    <button
+                      onClick={() => deleteValue(obj.id)}
+                      className="text-white bg-red-600 w-[150px] px-4 py-1 my-1 rounded-lg"
+                    >
+                      {delLoading && delBtnIndex === obj.id
+                        ? ".....loading"
+                        : "Delete"}
+                    </button>
+                  </td>
+                  <td className="border-[1px] border-blue-700 px-5">
+                    <button
+                      onClick={() => editUser(obj.id)}
+                      className="text-white bg-[#46f82e] w-[150px] px-4 py-1 my-1 rounded-lg"
+                    >
+                      EDIT
+                    </button>
+                  </td>
+                </tr>
+              ))}
+          </tbody>
         </table>
       )}
     </div>
