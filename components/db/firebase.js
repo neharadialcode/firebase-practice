@@ -1,7 +1,8 @@
-import { initializeApp } from "firebase/app";
+import { getApp, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCr41MKz1VzffM1ddAJ4F989kP5sx5IaYI",
@@ -20,3 +21,9 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const realTimeDB = getDatabase(app);
 export const db = getFirestore(app);
+// Get a non-default Storage bucket
+const firebaseApp = getApp();
+export const storage = getStorage(
+  firebaseApp,
+  "gs://fir-practice-33835.appspot.com"
+);

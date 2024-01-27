@@ -1,14 +1,12 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
-import TableData from "@/components/student-table/TableData";
 import UserDetails from "@/components/user-details/UserDetail";
+import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   return (
     <>
-      <TableData />
+      {/* <TableData /> */}
       <UserDetails />
     </>
   );

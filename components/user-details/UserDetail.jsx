@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { realTimeDB } from "../db/firebase";
+import { realTimeDB, storage } from "../db/firebase";
 import { ref, set, get } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
+import {
+  ref as dbImgRef,
+  uploadBytes,
+  getDownloadURL,
+  listAll,
+  list,
+} from "firebase/storage";
 
 const UserDetails = () => {
   const initialState = {
@@ -21,14 +28,19 @@ const UserDetails = () => {
   const [editUserId, setEditUserId] = useState(null);
 
   // GET BLOB URL  =============================************===============*****==================
-  const handleImageChange = (e) => {
+
+  const imagesListRef = dbImgRef(storage, "images/" + uuidv4());
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const blobUrl = URL.createObjectURL(file);
-      setStudentData({ ...studentData, imgUrl: blobUrl });
-      setImagePreview(blobUrl);
+      const uploadTask = await uploadBytes(imagesListRef, file);
+      const imageUrl = await getDownloadURL(uploadTask.ref);
+      setStudentData({ ...studentData, imgUrl: imageUrl });
+      setImagePreview(imageUrl);
     }
   };
+  console.log(studentData.imgUrl, "imageUrl");
+
   // ONSUBMIT STORED DATA  =============================************===============*****==================
 
   const onSubmitHandler = async (e) => {
