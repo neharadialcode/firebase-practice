@@ -32,12 +32,10 @@ const UserDetails = () => {
   // GET BLOB URL  =============================************===============*****==================
 
   const imagesListRef = dbImgRef(storage, "images/" + uuidv4());
-  const imageLoading = () => {
-    setImgLoading(true);
-  };
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      setImgLoading(true);
       const uploadTask = await uploadBytes(imagesListRef, file);
       const imageUrl = await getDownloadURL(uploadTask.ref);
       if (imageUrl) {
@@ -178,13 +176,13 @@ const UserDetails = () => {
           value={studentData.address}
         />
         <label
-          onClick={() => imageLoading()}
           htmlFor="image"
           className={`border-[1px] flex justify-between items-center border-purple-700  text-purple-700 font-bold cursor-pointer  m-1 px-4 py-2 ${
             imagePreview ? "max-w-[250px]" : "max-w-[200px]"
           }`}
         >
-          upload profile image
+          {imgLoading ? "uploading........" : "upload profile image"}
+
           <input
             onChange={handleImageChange}
             className="border-[1px] border-purple-700  m-1 p-4"
