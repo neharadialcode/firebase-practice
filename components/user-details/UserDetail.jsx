@@ -20,6 +20,7 @@ const UserDetails = () => {
   };
   const [studentData, setStudentData] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [delBtnIndex, setDelBtnindex] = useState(null);
   const [delLoading, setDelLoading] = useState(false);
   const [getData, setGetdata] = useState([]);
@@ -63,6 +64,7 @@ const UserDetails = () => {
   // ONSUBMIT STORED DATA  =============================************===============*****==================
 
   const onSubmitHandler = async (e) => {
+    setError(true);
     e.preventDefault();
     if (studentData.firstName && studentData.email) {
       setLoading(true);
@@ -78,6 +80,7 @@ const UserDetails = () => {
         setLoading(false);
         setStudentData(initialState);
         setImagePreview("");
+        setError(false);
       }
     }
   };
@@ -130,7 +133,11 @@ const UserDetails = () => {
 
   return (
     <div className="h-screen flex flex-col justify-center items-center max-w-[700px] mx-auto">
-      <form action="" onSubmit={(e) => onSubmitHandler(e)} className="pb-10">
+      <form
+        action=""
+        onSubmit={(e) => onSubmitHandler(e)}
+        className="pb-10 w-full"
+      >
         <input
           onChange={(e) =>
             setStudentData({ ...studentData, firstName: e.target.value })
@@ -142,6 +149,9 @@ const UserDetails = () => {
           placeholder="First Name"
           value={studentData.firstName}
         />
+        {error && studentData.firstName == "" && (
+          <p className="text-red-600 ms-1 mb-2">First name is required</p>
+        )}
         <input
           onChange={(e) =>
             setStudentData({ ...studentData, lastName: e.target.value })
@@ -158,12 +168,15 @@ const UserDetails = () => {
             setStudentData({ ...studentData, email: e.target.value })
           }
           className="border-[1px] border-purple-700 w-full m-1 p-4"
-          type="text"
+          type="email"
           name=""
           id=""
           placeholder="Email"
           value={studentData.email}
         />
+        {error && studentData.email == "" && (
+          <p className="text-red-600 ms-1 mb-2">Email is required</p>
+        )}
         <input
           onChange={(e) =>
             setStudentData({ ...studentData, address: e.target.value })
@@ -200,7 +213,6 @@ const UserDetails = () => {
             />
           )}
         </label>
-
         <div className="text-center">
           <button
             disabled={imgLoading}
